@@ -19,8 +19,8 @@ struct Nodo{
 	Nodo *hijoDerecho;
 }*aux=NULL, *raiz=NULL;
 
-void gotoxy(int x, int y);
-void insertar();
+Nodo* crearNodo();
+void insertar(Nodo *nuevo, Nodo *raizSubArbol);
 Nodo* buscar();
 void eliminarHoja(Nodo *nodo, Nodo *padre);
 void eliminarUnHijo(Nodo *padre, Nodo *nodo, Nodo *hijo, bool unHijo);
@@ -35,10 +35,8 @@ void graficar(Nodo *nodo, int espaciosX, int espaciosY, int nivel);
 int obtenerEspaciosNivel(int nivel);
 
 int main(){
-	int opcion,altura;   //op almacenara la opcion elegida por el usuario, altura guardara la altura del arbol
-	do{				//hacer
-		system("cls");  //lipiar pantalla
-		//Menu
+	int opcion,altura;
+	do{
 		cout<<"\t\t\tMENU\n\n";
 		cout<<"1.Insertar un nodo\n";
 		cout<<"2.Buscar un nodo\n";
@@ -50,11 +48,17 @@ int main(){
 		cout<<"8.Evaluar Altura\n";
 		cout<<"9.Salir\n\n";
 		cout<<"Ingrese su opcion\n";
-		cin>>opcion;  //solicitando opcion
-		switch(opcion){   //tomando decisiones segun la opcion elegida, inicio switch
-			case 1:	  //caso 1
-				insertar();   //Llamada a procedimiento insertar
-				break;
+		cin>>opcion;
+		switch(opcion){
+			case 1:
+				{
+					Nodo *nuevo = crearNodo();
+					cout<<"Ingrese el dato a insertar: ";
+					cin>>nuevo->dato;
+					insertar(nuevo, raiz);
+					nuevo = NULL;
+					break;
+				}
 			case 2:			//caso 2
 				buscar();   //Llamada a procedimiento buscar
 				break;
@@ -76,81 +80,55 @@ int main(){
 			case 7:				//caso 7
 				system("cls");  //limpia pantalla
 				graficar(raiz,80,3,1);   //Llamada a procedimiento graficar, enviandole como parametro la raiz, 80 que sera la coordenada en X, 3 que sera la coordenada en Y
-										//y 1 que indica que son los datos del primer nivel
-				getch();
 				break;
 			case 8:						//caso 8
 				altura=evaluarAltura(raiz);   //le asigna a la variable altura lo que le devuelva la funcion evaluarAltura
 				cout<<altura;					//Imprime la altura
-				getch();
 				break;
 			case 9:								//caso 9
 				cout<<"Gracias por utilizar el programa";  //agradecimiento por usar el programa
-				getch();
 				break;
 			default:										//cualquier otro caso
 				cout<<"Opcion invalida";					//indicando al usuario que no existe tal opcion
-				getch();
 				break;
 		}													//fin switch
-	}while(op!=9);											//mientras opcion sea diferente a 9 o salir
-}															//fin main
+	}while(opcion!=9);											//mientras opcion sea diferente a 9 o salir
+}
 
-
-void gotoxy(int x, int y){   //procedimiento gotoxy que sirve para mover el cursor a ciertas coordenadas x,y
-	HANDLE hCon;			//creando objeto de la clase HANDLE
-	hCon=GetStdHandle(STD_OUTPUT_HANDLE);   //el HANDLE va a ser de la salida estandar
-	COORD dwPos;   //creando un objeto de la clase COORD para obtener las coordenadas de la posicion
-	dwPos.X=x;		//Asignando la coordenada x
-	dwPos.Y=y;		//Asignando la coordenada y
-
-	SetConsoleCursorPosition(hCon,dwPos);   //asignandole la posicion al cursor
-}   //fin funcion gotoxy
-
-void insertar(){   //Procedimiento insertar que inserta un nuevo nodo
-	Nodo *nuevo=new Nodo;   //creando un nuevo espacio en memoria
-	bool salir=false;		//variable que indicara si hay que salir de un ciclo inicializada en falso
-	//Solicitando dato
-	cout<<"Ingrese el dato: ";
-	cin>>nuevo->dato;
-	//Asignando NUll a todos los punteros del nuevo nodo
+Nodo* crearNodo(){
+	Nodo *nuevo = new Nodo;
 	nuevo->padre=NULL;
 	nuevo->hijoIzquierdo=NULL;
 	nuevo->hijoDerecho=NULL;
 
-	if(raiz==NULL){   //si la raiz es nula es decir que el arbol esta vacio
-		raiz=nuevo;   //indicando que el nuevo nodo sera la raiz
-		nuevo=NULL;   //nuevo es ahora null
-	}				//fin if
-	else{			//si el arbol no esta vacio
-		aux=raiz;	//auxiliar tiene la direccion de raiz
+	return nuevo;
+}
 
-		while(!salir){   //mientras no se indique la salida del ciclo
-			if(nuevo->dato<=aux->dato){   //si el dato del nuevo nodo es menor que el nodo actual
-				if(aux->hijoIzquierdo==NULL){   //si el hijo izquierdo del nodo actual es null se podra colocar nuevo como hijo izquierdo de este
-					aux->hijoIzquierdo=nuevo;   //el hijo izquierdo del actual es nuevo
-					nuevo->padre=aux;			//asignando el nodo actual como padre del nuevo
-					salir=true;					//indicando la salida del ciclo
-				}   							//fin if
-				else{							//si no se ha llegado a un nodo que tenga libre su hijo izquierdo
-					aux=aux->hijoIzquierdo;	 	//recorra al hijo izquierdo del nodo actual
-				}								//fin else
-			}									//fin if
-			else{								//si el dato del nuevo nodo es mayor al actual
-				if(aux->hijoDerecho==NULL){		//si el hijo derecho del nodo actual es null se podra colocar nuevo como hijo derecho de este
-					aux->hijoDerecho=nuevo;		//el hijo derecho del actual es nuevo
-					nuevo->padre=aux;			//asignando actual como padre del nuevo nodo
-					salir=true;					//indicando la salida del ciclo
-				}								//fin if
-				else{							//si no se ha llegado a un nodo que tenga libre el hijo derecho
-					aux=aux->hijoDerecho;		//recorrer hacia la derecha
-				}								//fin else
-			}   								//fin else
-		}										//fin while
+bool estaVacio(Nodo *raizSubArbol){
+	return raizSubArbol == NULL;
+}
 
+void insertar(Nodo *nuevo, Nodo *raizSubArbol){
+	if(estaVacio(raizSubArbol)){
+		raiz = nuevo;
+	}
+	else{
+		if(nuevo->dato <= raizSubArbol->dato){
+			if(estaVacio(raizSubArbol->hijoIzquierdo)){
+				raizSubArbol->hijoIzquierdo = nuevo;
+			} else {
+				insertar(nuevo, raizSubArbol->hijoIzquierdo);
+			}
+		}									//fin if
+		else{								//si el dato del nuevo nodo es mayor al actual
+			if(estaVacio(raizSubArbol->hijoDerecho)){
+				raizSubArbol->hijoDerecho = nuevo;
+			} else{
+				insertar(nuevo, raizSubArbol->hijoDerecho);
+			}
+		}   								//fin else
 	} 											//fin else
 	cout<<"Agregado\n";
-	getch();
 }												//fin procedimiento insertar
 
 Nodo* buscar(){   //funcion insertar que devuelve la direccion de un nodo si este es encontrado y NULL si no lo es
@@ -174,7 +152,6 @@ Nodo* buscar(){   //funcion insertar que devuelve la direccion de un nodo si est
 		}								//fin else if
 		else if(dato==aux->dato){		//sino si dato buscado es igual al dato del nodo actual
 			cout<<"Dato encontrado!!\n\n";   //el dato fue encontrado
-			getch();
 			salir=true;						//indicando la salida del ciclo
 			encontrado=true;				//indicando que el nodo fue encontrado
 			return aux;						//regresa la direccion del nodo encontrado
@@ -182,9 +159,9 @@ Nodo* buscar(){   //funcion insertar que devuelve la direccion de un nodo si est
 	}										//fin while
 	if(!encontrado){						//si el nodo no fue encontrado
 		cout<<"No se encontro el dato"<<endl;
-		getch();
 		return NULL;   						//regresa NULL
 	}										//fin if
+	return NULL;
 }											//fin funcion buscar
 
 void eliminarUnHijo(Nodo *padre, Nodo *nodo, Nodo *hijo, bool unHijo){   //procedimiento eliminarUnHijo que resive como parametro 3 nodos que seran un padre su hijo y el hijo de su hijo
@@ -246,8 +223,7 @@ void eliminar(){   //funcion que elimina un nodo
 	aux=buscar();   			//aux tomara la referencia que devuelve la funcion buscar
 
 	if(aux==NULL || aux==raiz){   //si aux es null quiere decir que no se encontro el nodo o si aux es raiz
-		cout<<"No se puede eliminar, no se encontro o es raiz";   //indicarle al usuario que no se puede eliminar
-		getch();
+		cout<<"No se puede eliminar, no se encontro o es raiz";
 	}															//fin if
 	else{														//sino
 		Nodo *padreAux=aux->padre;								//se crea un puntero que apuntara al padre del nodo encontrado
@@ -276,7 +252,6 @@ void eliminar(){   //funcion que elimina un nodo
 			}																//fin else
 		}																	//fin else
 		cout<<"Eliminado";
-		getch();
 	}																		//fin else
 }																			//fin funcion eliminar
 
@@ -328,7 +303,6 @@ void graficar(Nodo *nodo, int espaciosX, int espaciosY, int nivel){   //procedim
 																		//las coordenadas en x e y, y el nivel donde esta situado ahora
 	int espaciosNivelSiguiente=0;									//variable que guardara el espaciado del siguiente nivel
 	if(nodo!=NULL){													//si el nodo es diferente de null
-		gotoxy(espaciosX,espaciosY);								//se situa en las coordenadas recibidas
 
 		cout<<nodo->dato;											//pinta el nodo
 		espaciosNivelSiguiente=obtenerEspaciosNivel(nivel+1);		//espaciosNivelSiguiente toma el valor que le devuelve la funcion obtenerEspaciosNivelSiguiente
